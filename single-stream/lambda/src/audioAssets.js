@@ -10,8 +10,9 @@ let en = {
             smallImageUrl: 'https://s3.amazonaws.com/alexademo.ninja/maxi80/alexa-artwork-720.png'
         }
     },
-    url: 'https://audio1.maxi80.com',
-    startJingle : 'https://s3.amazonaws.com/alexademo.ninja/maxi80/jingle.m4a'    
+    url: 'https://s3.amazonaws.com/ydeal-radio/3cw.m3u8',
+//    url: 'https://audio1.maxi80.com',
+//    startJingle : 'https://s3.amazonaws.com/alexademo.ninja/maxi80/jingle.m4a'
 };
 
 let de = { // TODO add german translation
