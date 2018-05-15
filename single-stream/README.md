@@ -1,3 +1,10 @@
+# Customize
+aws and ask have to be in same account. 
+
+Upload m3u8 file (m3u does not work) to s3, and run ask deploy.
+
+s3 bucket: https://s3.amazonaws.com/ydeal-radio/3cw.m3u8
+
 # Single Stream Audio Skill (My Radio)
 
 This skill demonstrates how to create a single stream audio skill.  Single stream skills are typically used by radio stations to provide a convenient and quick access to their live stream.
