@@ -1,0 +1,34 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "magic answers",
+      "intents": [
+        {
+          "name": "MyIntent",
+          "slots": [
+            {
+              "name": "MyQuestion",
+              "type": "AMAZON.US_STATE"
+            }
+          ],
+          "samples": [
+            "{MyQuestion}"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        }
+      ],
+      "types": []
+    }
+  }
+}
