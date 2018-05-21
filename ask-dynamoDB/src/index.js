@@ -49,10 +49,13 @@ const handlers = {
             params.Key.id = MyQuestion;
             console.log('params.Key.id : ' + params.Key.id);
 
-
+            var url = 'https://s3.amazonaws.com/ydeal-radio/3cw.m3u8';
+            this.response.speak('Enjoy.').audioPlayerPlay('REPLACE_ALL', url, url, null, 0);
+            this.emit(':responseReady');
         readDynamoItem(params, myResult=>{
             say = myResult;
             say = 'you asked, ' + MyQuestion + '. The answer is: ' + myResult;
+
             this.response.speak(say).listen('try again');
             this.emit(':responseReady');
 
@@ -71,7 +74,14 @@ const handlers = {
     'AMAZON.StopIntent': function () {
         this.response.speak('Goodbye!');
         this.emit(':responseReady');
-    }
+    },
+      'SessionEndedRequest': function() {
+    // no session ended logic needed
+  },
+  'Unhandled': function() {
+    this.response.speak('Sorry. Something went wrong.');
+    this.emit(':responseReady');
+  }
 };
 
 //    END of Intent Handlers {} ========================================================================================
