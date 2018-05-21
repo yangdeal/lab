@@ -1,131 +1,104 @@
-var Alexa = require('alexa-sdk');
+    // alexa-cookbook sample code
+
+// There are three sections, Text Strings, Skill Code, and Helper Function(s).
+// You can copy and paste the entire file contents as the code for a new Lambda function,
+//  or copy & paste section #3, the helper function, to the bottom of your existing Lambda code.
+
+
+// 1. Text strings =====================================================================================================
+//    Modify these strings and messages to change the behavior of your Lambda function
+
+const AWSregion = 'us-east-1';  // us-east-1
+
+const params = {
+    TableName: 'yesno',
+    Key:{ "id": '0'  }
+};
+
+
+// 2. Skill Code =======================================================================================================
+
+const Alexa = require('alexa-sdk');
+const AWS = require('aws-sdk');
+
+AWS.config.update({
+    region: AWSregion
+});
 
 exports.handler = function(event, context, callback) {
     var alexa = Alexa.handler(event, context);
 
-    alexa.dynamoDBTableName = 'YourTableName'; // creates new table for userid:session.attributes
+    // alexa.appId = 'amzn1.echo-sdk-ams.app.1234';
+    // alexa.dynamoDBTableName = 'YourTableName'; // creates new table for session.attributes
 
     alexa.registerHandlers(handlers);
     alexa.execute();
 };
 
-var handlers = {
-
-    'NewSession': function() {
-        // any previous session attributes are now loaded from Dynamo into the session attributes
-
-        var todayNow = new Date();
-
-        if(this.attributes['timestamp']) {  // user must have been here before
-            var dateLast = new Date(this.attributes['timestamp']);
-            var timeSpanMS = todayNow.getTime() - dateLast.getTime();
-            var timeSpanHR = Math.floor(timeSpanMS / (1000 * 60 * 60));
-            var timeSpanMIN = Math.floor(timeSpanMS / (1000 * 60 ));
-
-            this.attributes['hoursSinceLast'] = timeSpanHR;
-            this.attributes['minutesSinceLast'] = timeSpanMIN;
-
-            var launchCount = this.attributes['launchCount'];
-            this.attributes['launchCount'] = parseInt(launchCount) + 1;
-
-        } else {  // first use
-            this.attributes['hoursSinceLast'] = 0;
-            this.attributes['minutesSinceLast'] = 0;
-            this.attributes['launchCount'] = 0;
-
-        }
-
-        this.attributes['timestamp'] = todayNow;
-
-        this.emit('MyIntent');
-
-    },
-
-    'LaunchRequest': function () {  // happens when the user launches the skill but does not say their first question or command
-        this.emit('MyIntent');
+const handlers = {
+    'LaunchRequest': function () {
+        this.response.speak('welcome to magic answers').listen('try again');
+        this.emit(':responseReady');
     },
 
     'MyIntent': function () {
 
-        var say = 'hello and welcome';
-
-        var min = this.attributes['minutesSinceLast'];
-        var count = this.attributes['launchCount'];
-
-        var introSay = '';
-
-        if (count == 0) {
-            introSay = 'welcome, brand new user.';
-        } else {
-            if (min < 30) {
-                introSay = 'you again! it has only been ' + min + ' minutes! ';
-            } else {
-                introSay = 'welcome back. you have used this skill ' + count + ' times. ';
-            }
-        }
+        var MyQuestion = this.event.request.intent.slots.MyQuestion.value;
+        console.log('MyQuestion : ' + MyQuestion);
+            var say = '';
+            params.Key.id = MyQuestion;
+            console.log('params.Key.id : ' + params.Key.id);
 
 
-        this.response.speak(introSay + ' what can I help you with?').listen('try again');
-        this.emit(':responseReady');
-    },
-    'WhatsUpIntent': function () {
-        this.response.speak('hey friend, how are you today?', 'try again');
-        this.emit(':responseReady');
+        readDynamoItem(params, myResult=>{
+            say = myResult;
+            say = 'you asked, ' + MyQuestion + '. The answer is: ' + myResult;
+            this.response.speak(say).listen('try again');
+            this.emit(':responseReady');
 
-    },
-    'MyNameIsIntent': function () {
-        var myName = this.event.request.intent.slots.firstname.value;
-        this.attributes['name'] = myName;
-        this.response.speak('hello, ' + myName).listen('try again');
-        this.emit(':responseReady');
+        });
+
 
     },
     'AMAZON.HelpIntent': function () {
-        var myName = '';
-        if (this.attributes['name']) {
-            myName = this.attributes['name'];
-        }
-
-        var min = this.attributes['minutesSinceLast'];
-        var count = this.attributes['launchCount'];
-
-        var introSay = '';
-
-        if (count == 0) {
-            introSay = 'welcome new user, ';
-        } else {
-            if (min < 10) {
-                introSay = 'you again! it has only been ' + min + ' minutes! ';
-            } else {
-                introSay = 'welcome back. ';
-            }
-        }
-
-        this.response.speak(introSay + ' here is the help for you, ' + myName).listen('try again');
+        this.response.speak('ask me a yes or no question.').listen('try again');
         this.emit(':responseReady');
-
     },
     'AMAZON.CancelIntent': function () {
-        this.response.speak('you asked to Cancel, goodbye').listen('try again');
+        this.response.speak('Goodbye!');
         this.emit(':responseReady');
     },
     'AMAZON.StopIntent': function () {
-
-        var myName = '';
-        if (this.attributes['name']) {
-            myName = this.attributes['name'];
-        }
-        this.response.speak('goodbye, ' + myName);
+        this.response.speak('Goodbye!');
         this.emit(':responseReady');
-    },
+    }
 };
 
-function randomPhrase(myData) {
-    // the argument is an array [] of words or phrases
+//    END of Intent Handlers {} ========================================================================================
+// 3. Helper Function  =================================================================================================
 
-    var i = 0;
 
-    i = Math.floor(Math.random() * myData.length);
+function readDynamoItem(params, callback) {
 
-    return(myData[i]);
+    var AWS = require('aws-sdk');
+    AWS.config.update({region: AWSregion});
+
+    var docClient = new AWS.DynamoDB.DocumentClient();
+
+    console.log('reading item from DynamoDB table');
+
+    docClient.get(params, (err, data) => {
+        if (err) {
+            console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+        } else {
+            console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
+
+            if (JSON.stringify(data, null, 2) != "{}") {
+                callback(data.Item.message);  // this particular row has an attribute called message
+            }
+            else { callback("Not found") }
+
+        }
+    });
+
 }
